@@ -13,7 +13,11 @@
 #include <QTextStream>
 
 QString loadApiKey() {
+
     QFile file(".env");
+
+    qDebug() << "Trying to open .env file at:";
+
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         qDebug() << "Error: Could not open .env file!";
         return "";
@@ -30,6 +34,8 @@ QString loadApiKey() {
     qDebug() << "Error: API_KEY not found in .env file!";
     return "";
 }
+
+
 
 const QString API_KEY = loadApiKey();
 
@@ -125,20 +131,19 @@ QString MainWindow::capitalizeWords(const QString &input) {
 }
 
 void MainWindow::loadWeatherIcon(QString iconCode) {
-    QString iconUrl = "https://openweathermap.org/img/wn/" + iconCode + "@2x.png";
-    QNetworkRequest request((QUrl(iconUrl)));
-    QNetworkReply *imgReply = manager->get(request);
+    QString iconPath = QCoreApplication::applicationDirPath() + "/icons/" + iconCode + "@2x.png";
+    qDebug() << "Loading Weather Icon from:" << iconPath;
 
-    auto placeholder = [=]() {
-        QByteArray imgData = imgReply->readAll();
-        QPixmap pixmap;
-        pixmap.loadFromData(imgData);
-        ui->labelIcon->setPixmap(pixmap.scaled(100, 100, Qt::KeepAspectRatio,
-                                               Qt::SmoothTransformation));
-        imgReply->deleteLater();
-    };
-    connect(imgReply, &QNetworkReply::finished, placeholder);
+    QPixmap pixmap(iconPath);
+    if (pixmap.isNull()) {
+        qDebug() << "Error: Failed to load icon from local directory!";
+    } else {
+        qDebug() << "Weather icon loaded successfully!";
+        ui->labelIcon->setPixmap(pixmap.scaled(300, 300, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    }
 }
+
+
 
 MainWindow::~MainWindow() {
     delete ui;
